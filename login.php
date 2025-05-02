@@ -1,10 +1,7 @@
 <?php
+include "./templates/errorReport.php";
 include "./templates/navigation.php";
 include "./connection/con.php";
-
-ini_set('display_errors', 1);
-ini_set('display_startup_errors', 1);
-error_reporting(E_ALL);
 
 session_start(); // Start session
 
@@ -14,7 +11,7 @@ if (isset($_SESSION['user_id'])) {
     exit;
 }
 
-$loginError = "";
+$loginError = $_SESSION["error"] ?? "";
 
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
     $email = htmlspecialchars($_POST["email"]);
@@ -22,17 +19,32 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
     if (!empty($email) && !empty($password)) {
         // Prepare statement to avoid SQL injection
-        $stmt = $conn->prepare("SELECT id, email, password FROM Users WHERE email = ?");
+        $stmt = $conn->prepare("SELECT id, email, password, verified, secret FROM Users WHERE email = ?");
         $stmt->bind_param("s", $email);
         $stmt->execute();
         $result = $stmt->get_result();
 
         if ($result && $result->num_rows === 1) {
             $user = $result->fetch_assoc();
+            if($user["verified"] === 0){
+              $_SESSION['error'] = "please verify your email first to login";
+              $stmt->close();
+              header("Location: login.php"); // Redirect to a protected page
+              exit;
+            }
             if (password_verify($password, $user["password"])) {
+                if($user && $user["secret"]){
+                  $_SESSION["user_id"] = $user["id"];
+                  $_SESSION["user_email"] = $user["email"];
+                  $_SESSION["authvalid"] = true;
+                  // header('Location: 2fa_verify.php'); // go to OTP page
+                  header("Location: 2fa_verify.php"); // Redirect to a protected page
+                  exit;
+                }
                 // Login success
                 $_SESSION["user_id"] = $user["id"];
                 $_SESSION["user_email"] = $user["email"];
+                // header('Location: 2fa_verify.php'); // go to OTP page
                 header("Location: dashboard.php"); // Redirect to a protected page
                 exit;
             } else {

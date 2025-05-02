@@ -1,10 +1,6 @@
 <?php 
 session_start(); // Start session
-
-ini_set('display_errors', 1);
-ini_set('display_startup_errors', 1);
-error_reporting(E_ALL);
-
+include "./templates/errorReport.php";
 include "./templates/navigation.php";
 include "./connection/con.php";
 
@@ -30,6 +26,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             if ($result && $result->num_rows === 1) {
                 $user = $result->fetch_assoc();
                 if (password_verify($password, $user["password"])) {
+                    $_SESSION['password_confirmed'] = true;
                     header("Location: changePassword.php"); // Redirect to a protected page
                     exit;
                 } else {

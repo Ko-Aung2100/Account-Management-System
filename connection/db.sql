@@ -16,3 +16,5 @@ INSERT INTO Users (username, email, password) VALUES
 
 ALTER TABLE Users ADD verified TINYINT DEFAULT 0;
 ALTER TABLE Users ADD verify_token VARCHAR(255);
+
+ALTER TABLE Users ADD COLUMN secret VARCHAR(255) DEFAULT NULL;

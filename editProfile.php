@@ -2,6 +2,7 @@
 session_start(); // Start session
 
 include "./templates/navigation.php"; 
+include "./templates/functions.php";
 include "./connection/con.php";
 
 
@@ -27,13 +28,13 @@ $conn->close();
     <form action="updateprofile.php" method="POST" class="mt-4 needs-validation" novalidate>
       <div class="mb-3">
         <label for="fullName" class="form-label">Full Name</label>
-        <input type="text" class="form-control" id="username" name="username" value="<?php echo $user['username'] ?>" required>
+        <input type="text" class="form-control" id="username" name="username" value="<?php echo escape($user['username']) ?>" required>
         <div class="invalid-feedback">Please enter your new username.</div>
       </div>
 
       <div class="mb-3">
         <label for="email" class="form-label">Email address</label>
-        <input type="email" class="form-control" id="email" name="email" value="<?php echo $user['email'] ?>" required>
+        <input type="email" class="form-control" id="email" name="email" value="<?php echo escape($user['email']) ?>" required>
         <div class="invalid-feedback">Please enter a valid email.</div>
       </div>
 

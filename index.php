@@ -1,5 +1,10 @@
 <?php 
 include "templates/navigation.php"; 
+session_start(); // Start session
+if (isset($_SESSION['user_id'])) {
+  header("Location: dashboard.php");
+  exit;
+}
 
 ?>
 <h1 class="mt-3 mx-5">Demo Account Management System for Midterm Essay</h1>

@@ -1,4 +1,16 @@
-<?php include "./templates/navigation.php"; ?>
+<?php 
+include "./templates/navigation.php"; 
+
+session_start(); // Start session
+
+// Check if already logged in
+if (isset($_SESSION['user_id'])) {
+    header("Location: dashboard.php");
+    exit;
+}
+
+
+?>
 
 <div class="container mt-5" style="max-width: 600px; margin: auto;margin-bottom:150px;">    <h2>Register Form</h2>
     <form action="./validate.php" method="POST">

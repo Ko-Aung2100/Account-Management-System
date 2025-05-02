@@ -14,6 +14,14 @@ if (!isset($_SESSION['user_id'])) {
     exit;
 }
 
+
+if (!isset($_SESSION['password_confirmed']) || $_SESSION['password_confirmed'] !== true) {
+  // Redirect back to password confirmation
+  header("Location: passwordReset.php");
+  exit();
+}
+
+
 // Initialize error message
 $error_message = "";
 $id = $_SESSION['user_id'];
@@ -44,6 +52,10 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             // Execute the statement
             if ($stmt->execute()) {
                 $success_message = "Password updated successfully!";
+                // Optionally, unset the session variable to prevent reuse
+                unset($_SESSION['password_confirmed']);
+                header("Location: dashboard.php");
+                exit;
                 
             } else {
                 $error_message = "Error updating password: " . $stmt->error;
@@ -54,6 +66,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         }
     }
 }
+
 ?>
 
 <div class="container mt-5">

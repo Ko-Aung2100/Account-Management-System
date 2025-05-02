@@ -1,15 +1,33 @@
 <?php
+include "./templates/errorReport.php";
+session_start();
 
-ini_set('display_errors', 1);
-ini_set('display_startup_errors', 1);
-error_reporting(E_ALL);
+// Check if already logged in
+if (isset($_SESSION['user_id'])) {
+    header("Location: dashboard.php");
+    exit;
+}
+
+
+// Check if request method is not POST
+if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+    // Redirect to previous page or fallback
+    $redirectUrl = $_SERVER['HTTP_REFERER'] ?? 'register.php'; // Fallback to index.php
+    header("Location: $redirectUrl");
+    exit;
+}
 
 include "./connection/con.php";
+
 $token = bin2hex(random_bytes(16)); 
 
 $username = htmlspecialchars($_POST["username"]);
 $email = htmlspecialchars($_POST["email"]);
 $password = $_POST["password"];
+
+$_SESSION['email'] = $email;
+$_SESSION['username'] = $username;
+$_SESSION['token'] = $token;
 //echo $username . " " . $email . " " . $password;
 // --- Validation ---
 $errors = [];
@@ -104,7 +122,7 @@ $stmt->bind_param("ssss", $username, $email, $hashedPassword, $token);
 if ($stmt->execute()) {
     echo "Registration successful!";
     // Optionally redirect the user
-    header("Location: login.php");
+    header("Location: verify.php");
     exit();
 } else {
     // Handle execution errors (log them, display a user-friendly message)
