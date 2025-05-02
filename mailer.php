@@ -17,14 +17,14 @@ try {
     $mail->isSMTP();
     $mail->Host       = 'smtp.gmail.com';
     $mail->SMTPAuth   = true;
-    $mail->Username   = 'aungkaunghtetps2100@gmail.com';         // Your Gmail address
-    $mail->Password   = 'tsck swcs pvjp xcgk';            // App password from step 1
+    $mail->Username   = '';         // Your Gmail address
+    $mail->Password   = '';            // App password from step 1
     $mail->SMTPSecure = 'tls';                          // Encryption
     $mail->Port       = 587;
 
     // Recipients
-    $mail->setFrom('no-reply@dtu.com', 'Manager');
-    $mail->addAddress('waiyanmoemyint2832001@gmail.com', 'Wai Yan');
+    $mail->setFrom('', 'Manager');
+    $mail->addAddress('', 'Wai Yan');
 
     // Content
     $mail->isHTML(true);
