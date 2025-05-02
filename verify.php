@@ -23,9 +23,6 @@ $user = $result->fetch_assoc();
 if (isset($_SESSION['user_id']) and $user["verified"] === 1) {
     header("Location: dashboard.php");
     exit;
-}else{
-    header("Location: login.php");
-    exit;
 }
 
 

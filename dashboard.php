@@ -4,22 +4,10 @@ include "./templates/navigation.php";
 include "./templates/functions.php";
 include "./connection/con.php";
 include "./templates/errorReport.php";
-
-// Check if user is logged in
-if (!isset($_SESSION['user_id'])) {
-    header("Location: login.php");
-    exit;
-}
+include "./templates/authCheck.php";
 
 $user_id = $_SESSION['user_id'];
-$stmt = $conn->prepare("SELECT username, email, secret FROM Users WHERE id = ?");
-$stmt->bind_param("i", $user_id);
-$stmt->execute();
-$result = $stmt->get_result();
-$user = $result->fetch_assoc();
-
-
-$stmt->close();
+$user = showRecords($conn,$user_id);
 $conn->close();
 ?>
 

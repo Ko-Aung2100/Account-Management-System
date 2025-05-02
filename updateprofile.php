@@ -1,37 +1,21 @@
 <?php
-session_start(); // Start session
+session_start();
 include "./templates/errorReport.php";
 include "./connection/con.php";
-// Check if user is logged in
-if (!isset($_SESSION['user_id'])) {
-    header("Location: login.php");
-    exit;
+include "./templates/functions.php";
+include "./templates/authCheck.php";
+
+
+$user_id = $_SESSION['user_id'];
+$username = $_POST['username'] ?? '';
+$email = $_POST['email'] ?? '';
+
+// Validate inputs
+if (empty($username) || empty($email)) {
+    die("Both username and email are required.");
 }
 
-$user_id = $_SESSION['user_id']; // Retrieve the logged-in user's ID from the session
-$username = $_POST['username'];
-$email = $_POST['email'];
-
-// Update the user table with the new username and email
-$sql = "UPDATE Users SET username = ?, email = ? WHERE id = ?";
-
-// Prepare the query
-$stmt = $conn->prepare($sql);
-if ($stmt === false) {
-    die("Prepare failed: " . $conn->error);
-}
-// Bind parameters
-$stmt->bind_param("ssi", $username, $email, $user_id);
-
-// Execute the query
-if ($stmt->execute()) {
-    header("Location: dashboard.php");
-    exit;
-} else {
-    echo "Error updating profile: " . $stmt->error;
-}
-
-// Close the prepared statement and connection
-$stmt->close();
+$data = [$username, $email];
+updateUser($conn, $user_id, $data);
 $conn->close();
 ?>

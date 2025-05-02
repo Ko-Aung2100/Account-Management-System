@@ -9,11 +9,10 @@ if (isset($_SESSION['user_id'])) {
     exit;
 }
 
-
 ?>
 
 <div class="container mt-5" style="max-width: 600px; margin: auto;margin-bottom:150px;">    <h2>Register Form</h2>
-    <form action="./validate.php" method="POST">
+    <form action="./validate.php" method="POST" novalidate>
         <div class="mb-3">
             <label for="username" class="form-label">Username</label>
             <input type="text" class="form-control" id="username" name="username" aria-describedby="username" required>

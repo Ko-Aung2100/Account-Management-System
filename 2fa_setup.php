@@ -4,29 +4,18 @@ session_start();
 include "./templates/navigation.php"; 
 include "./templates/functions.php";
 include "./connection/con.php";
+include "./templates/authCheck.php";
 require_once 'vendor/autoload.php';
 use OTPHP\TOTP;
 
-// Check if user is logged in
-if (!isset($_SESSION['user_id'])) {
-    header("Location: login.php");
-    exit;
-}
-
 $userId = $_SESSION['user_id'] ?? 1;
-
-$stmt = $conn->prepare("SELECT secret FROM Users WHERE id = ?");
-$stmt->bind_param("i", $userId);
-$stmt->execute();
-$result = $stmt->get_result();
-$user = $result->fetch_assoc();
-
+$arr =["secret"];
+$user = showRecordsSelective($conn,$arr,$userId);
 $showQr = false; // control flag
 $secret = null;
 $qrUri = null;
 
 if ($user && $user["secret"]) {
-    echo "Your authentication Confidentials";
     $secret = $user["secret"];
     // Optional: if you want to allow regenerating QR code for existing secret:
     $totp = TOTP::create($secret);
@@ -35,15 +24,14 @@ if ($user && $user["secret"]) {
     $qrUri = $totp->getProvisioningUri();
     $showQr = true;
 } else {
+    echo "Hi";
     $totp = TOTP::create();
     $totp->setLabel('user@example.com');
     $totp->setIssuer('MyApp');
     $secret = $totp->getSecret();
-
     $stmt = $conn->prepare("UPDATE Users SET secret=? WHERE id=?");
     $stmt->bind_param("si", $secret, $userId);
     $stmt->execute();
-
     $qrUri = $totp->getProvisioningUri();
     $showQr = true;
 }
@@ -51,9 +39,19 @@ if ($user && $user["secret"]) {
 ?>
 
 <?php if ($showQr): ?>
-    <h2>Scan this QR code with Google Authenticator:</h2>
-    <div id="qrcode"></div>
-    <p>Or manually enter this secret: <strong><?= htmlspecialchars($secret) ?></strong></p>
+    <div class="container d-flex justify-content-center align-items-center min-vh-100">
+        <div class="card shadow rounded-4 p-4" style="max-width: 500px; width: 100%;">
+            <div class="card-body text-center">
+                <h2 class="card-title mb-4">Scan this QR code with Google Authenticator:</h2>
+                <div id="qrcode" class="mb-4 d-flex justify-content-center"></div>
+                <p class="card-text text-center text-break">
+                    Or manually enter this secret:
+                    <strong class="d-block mt-2"><?= htmlspecialchars($secret) ?></strong>
+                </p>
+            </div>
+        </div>
+    </div>
+
 <?php endif; ?>
 
 <!-- CSS and JS for QR code -->
@@ -61,7 +59,8 @@ if ($user && $user["secret"]) {
     #qrcode {
         width: 200px;
         height: 200px;
-        margin: 10px 0;
+        margin: auto;
+        
     }
 </style>
 
@@ -76,8 +75,9 @@ if ($user && $user["secret"]) {
             new QRCode(qrCodeDiv, {
                 text: qrUri,
                 width: 200,
-                height: 200
+                height: 200,
             });
+
         }
     });
 </script>

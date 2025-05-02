@@ -18,9 +18,6 @@ $user = $result->fetch_assoc();
 if (isset($_SESSION['user_id']) and $user["verified"] === 1) {
     header("Location: dashboard.php");
     exit;
-}else{
-    header("Location: login.php");
-    exit;
 }
 
 // Get token from URL
@@ -51,7 +48,7 @@ if ($result->num_rows === 1) {
 
         echo "<h3>Email verified successfully! You can now log in.</h3>";
         header("Location: login.php");
-         exit;
+        exit;
     }
 } else {
     echo "<h3>Invalid or expired verification token.</h3>";

@@ -6,28 +6,34 @@ include "./templates/functions.php";
 include "./connection/con.php";
 use OTPHP\TOTP;
 
-
 $userId = $_SESSION['user_id'] ?? 1;
 $code = $_POST['code'] ?? '';
 
+//you cannot come back here after login to dashboard
+if(isset($_SESSION['user_id']) && isset($_SESSION["insession"]) && $_SESSION["insession"] === true){
+  header("Location: dashboard.php");
+  exit;
+}
+if(!isset($_SESSION["2fa"]) && $_SESSION["2fa"]!== true){
+  header("Location: login.php");
+  exit;
+}
 // Get user's secret
-$stmt = $conn->prepare("SELECT secret FROM Users WHERE id=?");
-$stmt->bind_param("i", $userId);
-$stmt->execute();
-$result = $stmt->get_result();
-$row = $result->fetch_assoc();
+$arr=["secret"];
+$row = showRecordsSelective($conn, $arr, $userId);
 
 $totp = TOTP::create($row['secret']);
 
-if ($totp->verify($code)) {
-    $_SESSION['authenticated'] = true;
-    header('Location: dashboard.php');
-    exit;
-} else {
-    echo "❌ Invalid code!";
-}
-?>
+  if ($totp->verify($code)) {
+      $_SESSION["insession"] = true;
+      //mark user as log in
+      header('Location: dashboard.php');
+      exit;
+  } else {
+      echo "❌ Invalid code!";
+  }
 
+?>
 
 <div class="container mt-5">
     <div class="row justify-content-center">
@@ -40,6 +46,7 @@ if ($totp->verify($code)) {
                 <label for="code" class="form-label">OTP</label>
                 <br>
                 <input type="text" class="form-control" id="code" name="code" required>
+                <input type="hidden" name="otp" value="self">
               </div>
               <div class="d-grid mt-4">
                 <button type="submit" class="btn btn-primary">Submit</button>

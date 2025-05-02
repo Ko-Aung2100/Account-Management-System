@@ -3,14 +3,8 @@ session_start(); // Start session
 include "./templates/errorReport.php";
 include "./templates/navigation.php";
 include "./connection/con.php";
+include "./templates/authCheck.php";
 
-
-
-// Check if user is logged in
-if (!isset($_SESSION['user_id'])) {
-    header("Location: login.php");
-    exit;
-}
 $user_id = $_SESSION['user_id'];
 
 if ($_SERVER["REQUEST_METHOD"] === "POST") {

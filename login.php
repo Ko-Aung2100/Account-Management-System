@@ -1,12 +1,11 @@
 <?php
 include "./templates/errorReport.php";
 include "./templates/navigation.php";
+include "./templates/functions.php";
 include "./connection/con.php";
-
-session_start(); // Start session
-
+session_start();
 // Check if already logged in
-if (isset($_SESSION['user_id'])) {
+if (isset($_SESSION['insession'])) {
     header("Location: dashboard.php");
     exit;
 }
@@ -33,10 +32,11 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
               exit;
             }
             if (password_verify($password, $user["password"])) {
+    
                 if($user && $user["secret"]){
                   $_SESSION["user_id"] = $user["id"];
                   $_SESSION["user_email"] = $user["email"];
-                  $_SESSION["authvalid"] = true;
+                  $_SESSION["2fa"] = true;
                   // header('Location: 2fa_verify.php'); // go to OTP page
                   header("Location: 2fa_verify.php"); // Redirect to a protected page
                   exit;
@@ -44,6 +44,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 // Login success
                 $_SESSION["user_id"] = $user["id"];
                 $_SESSION["user_email"] = $user["email"];
+                $_SESSION["insession"] = true;
                 // header('Location: 2fa_verify.php'); // go to OTP page
                 header("Location: dashboard.php"); // Redirect to a protected page
                 exit;
@@ -69,7 +70,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         echo "show" ;
       };?>"
       >
-      <?php echo $loginError ?>
+      <?php echo escape($loginError); ?>
     </div>
     <div class="row justify-content-center">
       <div class="col-md-6 col-lg-5">
@@ -84,6 +85,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
               <div class="mb-3">
                 <label for="password" class="form-label">Password</label>
                 <input type="password" class="form-control" id="password" name="password" required>
+                <input type="hidden" name="action" value="login">
               </div>
               <div class="d-grid mt-4">
                 <button type="submit" class="btn btn-primary">Log In</button>
