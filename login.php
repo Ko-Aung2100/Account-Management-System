@@ -4,20 +4,30 @@ include "./templates/navigation.php";
 include "./templates/functions.php";
 include "./connection/con.php";
 session_start();
-// Check if already logged in
+
 if (isset($_SESSION['insession'])) {
     header("Location: dashboard.php");
     exit;
 }
 
 $loginError = $_SESSION["error"] ?? "";
+$ip = $_SERVER['REMOTE_ADDR'];
 
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
     $email = htmlspecialchars($_POST["email"]);
     $password = $_POST["password"];
 
-    if (!empty($email) && !empty($password)) {
-        // Prepare statement to avoid SQL injection
+    // Rate limiting: Check failed attempts in last 15 minutes
+    $stmt = $conn->prepare("SELECT COUNT(*) as attempts FROM login_attempts WHERE (email = ? OR ip_address = ?) AND attempt_time > (NOW() - INTERVAL 3 MINUTE)");
+    $stmt->bind_param("ss", $email, $ip);
+    $stmt->execute();
+    $result = $stmt->get_result()->fetch_assoc();
+    $attempts = $result['attempts'] ?? 0;
+    $stmt->close();
+
+    if ($attempts >= 3) {
+        $loginError = "Too many failed attempts. Try again after 3 minutes.";
+    } elseif (!empty($email) && !empty($password)) {
         $stmt = $conn->prepare("SELECT id, email, password, verified, secret FROM Users WHERE email = ?");
         $stmt->bind_param("s", $email);
         $stmt->execute();
@@ -25,28 +35,31 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
         if ($result && $result->num_rows === 1) {
             $user = $result->fetch_assoc();
-            if($user["verified"] === 0){
-              $_SESSION['error'] = "please verify your email first to login";
-              $stmt->close();
-              header("Location: login.php"); // Redirect to a protected page
-              exit;
+
+            if ($user["verified"] === 0) {
+                $_SESSION['error'] = "Please verify your email first to login.";
+                $stmt->close();
+                header("Location: login.php");
+                exit;
             }
+
             if (password_verify($password, $user["password"])) {
-    
-                if($user && $user["secret"]){
-                  $_SESSION["user_id"] = $user["id"];
-                  $_SESSION["user_email"] = $user["email"];
-                  $_SESSION["2fa"] = true;
-                  // header('Location: 2fa_verify.php'); // go to OTP page
-                  header("Location: 2fa_verify.php"); // Redirect to a protected page
-                  exit;
-                }
-                // Login success
+                // Login successful - clear previous attempts
+                $clear = $conn->prepare("DELETE FROM login_attempts WHERE email = ? OR ip_address = ?");
+                $clear->bind_param("ss", $email, $ip);
+                $clear->execute();
+                $clear->close();
+
                 $_SESSION["user_id"] = $user["id"];
                 $_SESSION["user_email"] = $user["email"];
-                $_SESSION["insession"] = true;
-                // header('Location: 2fa_verify.php'); // go to OTP page
-                header("Location: dashboard.php"); // Redirect to a protected page
+
+                if (!empty($user["secret"])) {
+                    $_SESSION["2fa"] = true;
+                    header("Location: 2fa_verify.php");
+                } else {
+                    $_SESSION["insession"] = true;
+                    header("Location: dashboard.php");
+                }
                 exit;
             } else {
                 $loginError = "Incorrect password.";
@@ -55,6 +68,14 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             $loginError = "No account found with that email.";
         }
         $stmt->close();
+
+        // Log failed login
+        if ($loginError !== "") {
+            $log = $conn->prepare("INSERT INTO login_attempts (email, ip_address) VALUES (?, ?)");
+            $log->bind_param("ss", $email, $ip);
+            $log->execute();
+            $log->close();
+        }
     } else {
         $loginError = "Please fill in all fields.";
     }
