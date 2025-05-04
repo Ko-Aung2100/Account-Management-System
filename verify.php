@@ -10,7 +10,17 @@ require 'vendor/autoload.php';
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
 
+// Check if already logged in
+if (isset($_SESSION['user_id']) and $user["verified"] === 1) {
+    header("Location: dashboard.php");
+    exit;
+}
 
+if(!isset($_SESSION['registered']) and $_SESSION['registered'] !==true){
+    unset($_SESSION['registered']); 
+    header("Location: register.php");
+    exit();
+}
 //check email is already verify or not?
 $user_id = $_SESSION['user_id'];
 $stmt = $conn->prepare("SELECT verified FROM Users WHERE id = ?");
@@ -19,17 +29,9 @@ $stmt->execute();
 $result = $stmt->get_result();
 $user = $result->fetch_assoc();
 
-// Check if already logged in
-if (isset($_SESSION['user_id']) and $user["verified"] === 1) {
-    header("Location: dashboard.php");
-    exit;
-}
-
-
 $email = $_SESSION["email"];
 $token = $_SESSION["token"];
 $name = $_SESSION["username"];
-echo $email;
 $mail = new PHPMailer(true); // <--- This line is required
 $confirmLink= $domain. "verifySuccessful.php?token=" . $token;
 try {
@@ -61,7 +63,7 @@ try {
     $mail->send();
   
    
-} catch (Exception $e) {
+} catch (Exception $e) { 
     echo "Email could not be sent. Error: {$mail->ErrorInfo}";
     
 }

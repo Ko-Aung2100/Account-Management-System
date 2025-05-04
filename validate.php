@@ -35,6 +35,7 @@ var_dump($success);
 // Execute the statement
 if ($success) {
     echo "Registration successful!";
+    $_SESSION['registered'] = true;
     header("Location: verify.php");
     exit();
 } else {

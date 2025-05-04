@@ -1,3 +1,6 @@
+<?php
+$currentPage = basename($_SERVER['PHP_SELF']);
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -29,7 +32,7 @@
         <?php 
            if(!isset($_SESSION['user_id'])){
             ?>
-             <a class="nav-link" href="index.php">Home</a>
+             <a class="nav-link" href="/index.php">Home</a>
            <?php
            }
            ?>
@@ -46,9 +49,11 @@
             <a class="nav-link" href="logout.php">Logout</a>
           <?php
            } else{
+              if ($currentPage !== 'login.php'){
           ?>
-             <a class="nav-link" href="login.php">Login</a>
+             <a class="nav-link" href="/login.php">Login</a>
           <?php
+              }
             }
           ?>
         </li>

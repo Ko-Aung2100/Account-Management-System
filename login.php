@@ -2,7 +2,6 @@
 include "./templates/errorReport.php";
 include "./templates/navigation.php";
 include "./templates/functions.php";
-include "./connection/con.php";
 session_start();
 
 if (isset($_SESSION['insession'])) {
@@ -91,7 +90,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         echo "show" ;
       };?>"
       >
-      <?php echo escape($loginError); ?>
+      <?php showAlert($loginError, "error") ?>
     </div>
     <div class="row justify-content-center">
       <div class="col-md-6 col-lg-5">

@@ -4,7 +4,7 @@ CREATE TABLE Users (
     id INT AUTO_INCREMENT PRIMARY KEY,
     username VARCHAR(100) NOT NULL,
     email VARCHAR(100) NOT NULL,
-    password VARCHAR(20) NOT NULL
+    password VARCHAR(100) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 INSERT INTO Users (username, email, password) VALUES
@@ -25,3 +25,6 @@ CREATE TABLE login_attempts (
   ip_address VARCHAR(45),
   attempt_time DATETIME DEFAULT CURRENT_TIMESTAMP
 );
+
+
+ALTER TABLE password_resets ADD UNIQUE (email);

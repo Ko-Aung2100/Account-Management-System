@@ -1,5 +1,8 @@
 <?php
 include "./connection/con.php";
+use PHPMailer\PHPMailer\PHPMailer;
+use PHPMailer\PHPMailer\Exception;
+require 'vendor/autoload.php';
 // secure input , output, to prevent XSS attack
 $domain = "http://localhost:3000/";
 function escape($str) {
@@ -24,7 +27,7 @@ function showRecordsSelective($conn, $arr, $user_id) {
     $stmt->close();
     return $user;
 }
-
+ 
 // Read all columns
 function showRecords($conn, $user_id) {
     $stmt = $conn->prepare("SELECT * FROM Users WHERE id = ?");
@@ -66,7 +69,7 @@ function updateUser($conn, $user_id, $data) {
     }
     $stmt->close();
 }
-
+ 
 
 function createUser($conn, $username, $email, $password, $token) {
     echo "create user";
@@ -162,5 +165,89 @@ function validateUserInput($username, $email, $password, $conn) {
     // Clean up
     $stmt->close();
 }
+
+
+function sendMailforPasswordReset($email, $confirmLink, $content) {
+    $mail = new PHPMailer(true);
+    try {
+        // SMTP setup
+        $mail->isSMTP();
+        $mail->Host = 'localhost'; // Use 'smtp.example.com' for real SMTP
+        $mail->Port = 1025;        // Port used by MailHog
+        $mail->SMTPAuth = false;
+
+        // Email details
+        $mail->setFrom('no-reply@example.com', 'Your App');
+        $mail->addAddress($email);
+
+        $mail->isHTML(true);
+        $mail->Subject = $content->Subject;  
+        $mail->Body    = $content->Body;
+        $mail->AltBody = $content->AltBody;
+
+        // Send email
+        $mail->send();
+        return true;
+
+    } catch (Exception $e) {
+        echo "Email could not be sent. Error: {$mail->ErrorInfo}";
+        return false;
+    }
+} 
+function showAlert($message, $type = 'error') {
+    $colors = [
+        'error' => '#f44336',
+        'warning' => '#ff9800',
+        'success' => '#4CAF50',
+        'info' => '#2196F3',
+    ];
+    $color = $colors[$type] ?? '#f44336';
+
+    echo '
+    <div id="alertBox" style="
+        position: fixed;
+        top: 5em;
+        right: 20px;
+        min-width: 20em;
+        max-width: 50rem;
+        padding: 15px 20px;
+        background-color: ' . $color . ';
+        color: white;
+        border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        font-family: Arial, sans-serif;
+        z-index: 9999;
+        opacity: 1;
+        transition: opacity 0.5s ease-out;
+    ">
+        ' . htmlspecialchars($message) . '
+    </div>
+
+    <script>
+    setTimeout(function() {
+        var alertBox = document.getElementById("alertBox");
+        if (alertBox) {
+            alertBox.style.opacity = "0";
+            setTimeout(function() {
+                alertBox.remove();
+            }, 500);
+        }
+    }, 5000); // Hide after 5 seconds
+    </script>
+    ';
+}
+function checkEmail($conn, $emailToCheck){ 
+    $stmt = $conn->prepare("SELECT id FROM Users WHERE email = ?");
+    $stmt->bind_param("s", $emailToCheck);
+    $stmt->execute();
+    $stmt->store_result();
+    $status = false;
+    if ($stmt->num_rows > 0) {
+       $status = true;
+    }
+    $stmt->close();
+    return $status;
+}
+
 
 ?>
